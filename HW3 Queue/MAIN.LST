@@ -1,0 +1,141 @@
+8086/87/88/186 MACRO ASSEMBLER    MAIN                                                     16:13:12  11/01/;4  PAGE    1
+
+
+DOS 5.0 (038-N) 8086/87/88/186 MACRO ASSEMBLER V3.1 ASSEMBLY OF MODULE MAIN
+OBJECT MODULE PLACED IN MAIN.OBJ
+ASSEMBLER INVOKED BY:  C:\UTIL\ASM86.EXE MAIN.ASM M1 DB EP
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                             1     
+                             2     
+                             3     
+                             4     NAME MAIN
+                             5     
+                             6 +1  $INCLUDE (queue.inc)
+                      =1     7     ; Converts.inc
+                      =1     8     ; Include file for converts functions
+                      =1     9     
+                      =1    10     ; This file contains the values for the ASCII characters used in converts
+                      =1    11     ;
+                      =1    12     ; Revision History:
+                      =1    13     ;     10/25/14  Torkom Pailevanian      initial revision
+                      =1    14     
+                      =1    15     ; ASCII Characters
+                      =1    16     
+                      =1    17     ;STRUC CONSTANTS
+  0000                =1    18     emptyQueueOffset        EQU     0                       ;The value of the head and ta
+                                   il pointer when there is no data in the queue
+  0002                =1    19     emptyBuffer         EQU     2           ;There is a two byte empty space between tail
+                                    ptr and head ptr when full
+                      =1    20     
+                      =1    21     ;Size Byte Types
+  0000                =1    22     BYTE_TYPE                       EQU             0                       ;Size byte va
+                                   lue if elements are bytes
+  0001                =1    23     WORD_TYPE                       EQU             1                       ;Size byte va
+                                   lue if elements are words
+                      =1    24     
+                      =1    25     ;Stuc size
+  0100                =1    26     QUEUE_SIZE                      EQU             256                     ;Stores the n
+                                   umber of elements that can be stored in the queue
+  0400                =1    27     MAX_QUEUE_SIZE          EQU             1024            ;the maximum space to allocat
+                                   e for the queue
+                      =1    28     
+                      =1    29     ;Struc definition
+----                  =1    30     QUEUESTRUC      STRUC           ;structure containing the queue
+0000                  =1    31         headPtr     DB      ?       ;stores the head pointer for the queue
+0001                  =1    32         tailPtr     DB      ?       ;stores the tail pointer for the queue
+0002                  =1    33         elemSize    DB      ?       ;stores the size of each element, i.e. byte or word
+0003                  =1    34         queueData   DB      MAX_QUEUE_SIZE  DUP(?)  ;allocates space for the queue 
+----                  =1    35     QueueStruc      ENDS
+                      =1    36     
+                            37     
+                            38     DGROUP  GROUP   DATA, STACK
+                            39     CGROUP  GROUP   CODE   
+                            40     
+----                        41     CODE    SEGMENT PUBLIC 'CODE'           
+                            42     
+                            43             ASSUME  CS:CGROUP, DS:DGROUP
+                            44             
+8086/87/88/186 MACRO ASSEMBLER    MAIN                                                     16:13:12  11/01/;4  PAGE    2
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                            45     
+                            46     
+                            47     ;external function declarations
+                            48     
+                            49             EXTRN   QueueTest:NEAR         ;Test file for the queue
+                            50                     EXTRN   QueueInit:NEAR             ;Initializes the pointers in the q
+                                   ueue
+                            51             EXTRN   QueueEmpty:NEAR        ;Checks if queue is Empty
+                            52             EXTRN   QueueFull:NEAR         ;Checks if queue is Full
+                            53             EXTRN   Dequeue:NEAR           ;Takes one element from the queue
+                            54             EXTRN   Enqueue:NEAR           ;Puts one element in the queue
+                            55     
+                            56     
+0000                        57     START:                                  ;start the program
+                            58     
+0000 B8----         R       59             MOV     AX, DGROUP              ;initialize the stack pointer
+0003 8ED0                   60             MOV     SS, AX
+0005 BCE00190       R       61             MOV     SP, OFFSET(DGROUP:TopOfStack)
+                            62     
+0009 B8----         R       63             MOV     AX, DGROUP              ;initialize the data segment
+000C 8ED8                   64             MOV     DS, AX
+                            65                     
+                            66                     ;initialize queue
+000E 8D360000       R       67                     LEA             SI, queue
+0012 B9FE00                 68                     MOV     CX, 254
+0015 E80000         E       69             CALl    QueueTest
+                            70     
+                            71     ;        MOV     BL, 0
+                            72     ;        CALL    QueueInit
+                            73             
+                            74     ;        MOV AX, 0
+                            75     ;        MOV CX, 0
+                            76     ;EnqueueLoop:
+                            77     ;        CALL Enqueue
+                            78     ;        INC  AX
+                            79     ;        INC  CX
+                            80     ;        CMP  CX, 253
+                            81     ;        JBE   EnqueueLoop
+                            82             
+                            83     ;Enqueue253:
+                            84     ;        CALL Enqueue
+                            85             
+0018                        86     checkRegisters:
+0018 EBE6                   87                     JMP     START
+                            88                     
+----                        89     CODE    ENDS
+                            90     
+----                        91     DATA    SEGMENT PUBLIC  'DATA'
+                            92     
+0000 ??                     93     queue                   QUEUESTRUC <>           ;queue structure initialization
+0001 ??
+0002 ??
+0003 (1024
+     ??
+     )
+8086/87/88/186 MACRO ASSEMBLER    MAIN                                                     16:13:12  11/01/;4  PAGE    3
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                            94     
+----                        95     DATA    ENDS
+                            96     
+----                        97     STACK   SEGMENT STACK  'STACK'
+                            98     
+0000 (80                    99                     DB      80 DUP ('Stack ')       ;240 words
+     537461636B20
+     )
+                           100     
+01E0                       101     TopOfStack      LABEL   WORD
+                           102     
+----                       103     STACK   ENDS
+                           104     
+                           105     END  START   
+
+ASSEMBLY COMPLETE, NO ERRORS FOUND

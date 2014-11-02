@@ -1,0 +1,277 @@
+8086/87/88/186 MACRO ASSEMBLER    CONVERTS                                                 12:16:52  10/26/;4  PAGE    1
+
+
+DOS 5.0 (038-N) 8086/87/88/186 MACRO ASSEMBLER V3.1 ASSEMBLY OF MODULE CONVERTS
+OBJECT MODULE PLACED IN CONVERTS.OBJ
+ASSEMBLER INVOKED BY:  C:\UTIL\ASM86.EXE CONVERTS.ASM M1 EP DB
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                             1     ;                 Name: Torkom Pailevanian
+                             2     ;
+                             3     ;                 Function: Converters
+                             4 +1  $INCLUDE (converts.inc)
+                      =1     5     ; Converts.inc
+                      =1     6     ; Include file for converts functions
+                      =1     7     
+                      =1     8     ; This file contains the values for the ASCII characters used in converts
+                      =1     9     ;
+                      =1    10     ; Revision History:
+                      =1    11     ;     10/25/14  Torkom Pailevanian      initial revision
+                      =1    12     
+                      =1    13     ; ASCII Characters
+  0030                =1    14     ASCII_0                 EQU     '0'       ;ASCII value for 0
+  0041                =1    15     ASCII_A                   EQU             'A'                           ;ASCII value 
+                                   for A
+  002D                =1    16     ASCII_BAR     EQU     '-'       ;Ascii value for -
+  0000                =1    17     ASCII_NULL    EQU     00H       ;Null terminator for string
+                      =1    18            
+                            19     
+                            20     NAME Converts
+                            21     
+                            22     CGROUP  GROUP   CODE   
+                            23     
+----                        24     CODE    SEGMENT PUBLIC 'CODE'           
+                            25     
+                            26             ASSUME  CS:CGROUP     
+                            27     
+                            28     ; Dec2String 
+                            29     ; 
+                            30     ; Description:      The function is passed a 16-bit signed value to convert to 
+                            31     ;                         decimal value (at most 5 digits plus sign) and store as a 
+                            32     ;                   string. The string contains the <null> terminated decimal 
+                            33     ;                   representation of the value in ASCII. The resulting string 
+                            34     ;                   is stored starting at the memory location indicated by the 
+                            35     ;                   passed address
+                            36     ;
+                            37     ; Operation:          The function first checks to see if the digit is positive 
+                            38     ;                   or negative.  The function starts dividing with the largest
+                            39     ;                   power of 10 possible (10000) and loops dividing the number 
+                            40     ;                   by the power of 10, the quotient is a digit and the 
+                            41     ;                   remainder is used in the next iteration of the loop.  Each 
+                            42     ;                   loop iteration divides the power of 10 by 10 until it is 0.  
+                            43     ;                   At that point the number has been converted to string.
+                            44     ; 
+                            45     ; Arguments:            AX - binary value to convert to decimal (n)
+                            46     ;                           SI - address to start storing string (a)
+                            47     ;
+                            48     ; Return Value:       None       
+                            49     ; 
+8086/87/88/186 MACRO ASSEMBLER    CONVERTS                                                 12:16:52  10/26/;4  PAGE    2
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                            50     ; Local Variables:        Remainder - remainder from division operation
+                            51     ;                           pwr10 - power of 10 being divided by
+                            52     ;                           arg - copy of number to convert
+                            53     ;                     string_index - stores index of output string
+                            54     ;       
+                            55     ; Shared Variables:   None
+                            56     ; Global Variables:   None
+                            57     ; 
+                            58     ; Input:              None
+                            59     ; Output:             None
+                            60     ; 
+                            61     ; Error Handling:     None
+                            62     ; 
+                            63     ; Algorithms:         None.
+                            64     ;
+                            65     ; Data Structures:    None.
+                            66     ; 
+                            67     ; Registers Changed:  AX, SI, DX, CX, CF, SF, ZF
+                            68     ; 
+                            69     ; Known Bugs:         None.
+                            70     ;
+                            71     ; Limitations:        Can only handle signed inputs of 16 bits
+                            72     ;
+                            73     ; Revision History:   10/19/14   Torkom Pailevanian   initial revision
+                            74     ;                     10/24/14   Torkom Pailevanian   wrote asm code
+                            75     ;
+                            76     ;Pseudo Code
+                            77     ;   pwr10 = 10000
+                            78     ;         IF(negative)
+                            79     ;                   add "-" to string
+                            80     ;       negate arg
+                            81     ;         REPEAT
+                            82     ;                   remainder = arg modulo pwr10
+                            83     ;                   arg = arg/pwr10
+                            84     ;                   add to string pointer location arg + '0' for ascii value
+                            85     ;       increment string pointer by 1 byte
+                            86     ;       arg = remainder
+                            87     ;                   pwr10 = pwr10/10
+                            88     ;         UNTIL (pwr10 = 0)
+                            89     ;         add <null> to end string
+                            90     
+                            91     
+0000                        92     Dec2String      PROC        NEAR                 
+                            93                     PUBLIC      Dec2String
+                            94     
+0000                        95     Dec2StringInit:
+0000 B91027                 96             MOV     CX, 10000         ;start with the 10,000's digit
+                            97             ;JMP    CheckNegative     ;starts func to see if input is negative
+                            98               
+0003                        99     CheckNegative:
+0003 3D0000                100             CMP     AX, 0             ;compare to check signed big
+0006 7803                  101             JS      DoIfNegative      ;If signed bit on jumps to add "-" function
+0008 EB0790                102             JMP     Dec2StringLoop    ;jump to main loop if arg is not negative
+                           103               
+000B                       104     DoIfNegative:
+8086/87/88/186 MACRO ASSEMBLER    CONVERTS                                                 12:16:52  10/26/;4  PAGE    3
+
+
+LOC  OBJ                  LINE     SOURCE
+
+000B C6042D                105             MOV     byte ptr [SI], ASCII_BAR  ;Add the '-' char to string since negative
+000E 46                    106             INC     SI                ;increments SI so we can store the next char
+000F F7D8                  107             NEG     AX                ;Makes arg unsigned to start dividing
+                           108             ;JMP    Dec2StringLoop    ;Runs the main loop
+                           109     
+0011                       110     Dec2StringLoop:
+0011 BA0000                111             MOV     DX, 0             
+0014 83F900                112             CMP     CX, 0             ;checks if pwr10 > 0
+0017 7E1D                  113             JLE     AddNullToDecString   ;exits the loop if the pwr10 <= 0
+                           114             
+0019                       115     Dec2StringLoopBody:
+0019 BA0000                116             MOV     DX, 0             ;setup for arg/pwr10
+001C F7F1                  117             DIV     CX                ;divides the argument by pwr10
+001E 52                    118             PUSH    DX                ;Put remainder on stack so to divide
+001F C60430                119             MOV     byte ptr [SI], ASCII_0  ;adds offser for '0' to string location
+0022 0104                  120             ADD     [SI], AX          ;adds the value of quotent to string location
+0024 46                    121             INC     SI                ;increments SI so we can store next char
+0025 8BC1                  122             MOV     AX, CX            ;moves pwr10 to AX so we can divide by 10
+0027 B90A00                123             MOV     CX, 10            ;Moves 10 into CX so we can divide
+002A BA0000                124             MOV     DX, 0             ;Clears DX before dividing
+002D F7F1                  125             DIV     CX                ;divides pwr10 by 10
+002F 8BC8                  126             MOV     CX, AX            ;puts new pwr10 into CX
+0031 5A                    127             POP     DX                ;puts remainder back in DX
+0032 8BC2                  128             MOV     AX, DX            ;puts argument back into AX
+0034 EBDB                  129             JMP     Dec2StringLoop    ;starts back at the top of loop
+                           130             
+0036                       131     AddNullToDecString:
+0036 C60400                132             MOV     byte ptr [SI], ASCII_NULL  ;terminates the string with a null  
+                           133             ;JMP    EndDec2String     ;done converting
+                           134     
+0039                       135     EndDec2String:
+0039 C3                    136             RET                       ;Return from function
+                           137      
+                           138     Dec2String      ENDP     
+                           139     
+                           140     ; Hex2String 
+                           141     ; 
+                           142     ; Description:        The function is passed a 16-bit unsigned value (n) to 
+                           143     ;                     convert to 16 bit hexadecimal and store as an ASCII
+                           144     ;                     string. The string is terminated by the <null> 
+                           145     ;                     terminated hexadecimal representation of the value in 
+                           146     ;                     ASCII. The resulting string is stored starting at the 
+                           147     ;                     memory location indicated by the passed address. 
+                           148     ; 
+                           149     ; Operation:          This function rotates the argument by 4 bits and does a 
+                           150     ;                     bitwise   and with 0x000F to get the value of last 4 
+                           151     ;                     digits.  It takes this value as an offset from the
+                           152     ;                     '0' or 'A' character, depending on its value, to add 
+                           153     ;                     the character to the string.
+                           154     ; 
+                           155     ; Arguments:          AX - binary value to convert to hex (n)
+                           156     ;                           SI - address to start storing string (a)
+                           157     ;
+                           158     ; Return Value:       None.     
+                           159     ; 
+8086/87/88/186 MACRO ASSEMBLER    CONVERTS                                                 12:16:52  10/26/;4  PAGE    4
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                           160     ; Local Variables:    arg - copy of number to convert to hex
+                           161     ;                     string_index - stores index of output string   
+                           162     ;                           result - value of AND operation
+                           163     ;
+                           164     ; Shared Variables:   None.
+                           165     ; Global Variables:   None.
+                           166     ; 
+                           167     ; Input:              None.
+                           168     ; Output:             None.
+                           169     ; 
+                           170     ; Error Handling:     None. 
+                           171     ; 
+                           172     ; Algorithms:         None.
+                           173     ;
+                           174     ; Data Structures:    None.
+                           175     ; 
+                           176     ; Registers Changed:  AX, SI, CX, SF, OF, ZF
+                           177     ;
+                           178     ; Known Bugs:         None.
+                           179     ;
+                           180     ; Limitations:        Can only handle unsigned inputs of 16 bits
+                           181     ; 
+                           182     ; Revision History:   10/19/14   Torkom Pailevanian   initial revision
+                           183     ;                     10/24/14   Torkom Pailevanian   wrote asm code
+                           184     ;
+                           185     ;  Pseudo Code
+                           186     ;             FOR (i = 0 to 3, i++)
+                           187     ;         Rotate arg 4 bits right
+                           188     ;                     result = AND arg with 0x000F
+                           189     ;                     IF(result between 0 and 9)
+                           190     ;                               add result + '0' to string pointer location
+                           191     ;                     ELSE
+                           192     ;                               add result - 10 + 'A' to string pointer location
+                           193     ;                   increments string pointer by 1 byte
+                           194     ;             add <null> to end of string 
+                           195     
+003A                       196     Hex2String          PROC        NEAR                 
+                           197                     PUBLIC      Hex2String
+                           198                     
+003A                       199     Hex2StringInit:
+003A B90000                200             MOV     CX, 0             ;initialize counter for FOR loop
+                           201             ;JMP    Hex2StringLoop    ;starts main loop for conversion
+                           202     
+003D                       203     Hex2StringLoop:
+003D 83F904                204             CMP     CX, 4             ;checks to see if the loop is done iterating
+0040 7D22                  205             JGE     AddNullToHexString   ;Exits loop if the counter is >= 4
+                           206             ;JMP    Hex2StringLoopBody  ;Enters loop body
+                           207     
+0042                       208     Hex2StringLoopBody:
+0042 C1C004                209             ROL     AX, 4             ;rotates argument 4 bits to the left
+0045 8BD0                  210             MOV     DX, AX            ;moves argument to DX to prepare for AND op
+0047 81E20F00              211             AND     DX, 000Fh         ;gets the least significant 4 bits
+004B 83FA0A                212             CMP     DX, 10            ;compares least sig 4 bits with 10
+004E 7D08                  213             JGE     UpperChars        ;if >= 10 goes to upper loop A-F
+                           214             ;JMP    LowerChars        ;else goes to lower characters loop 0-9
+8086/87/88/186 MACRO ASSEMBLER    CONVERTS                                                 12:16:52  10/26/;4  PAGE    5
+
+
+LOC  OBJ                  LINE     SOURCE
+
+                           215             
+0050                       216     LowerChars:
+0050 C60430                217             MOV     byte ptr [SI], ASCII_0  ;Add the '0' offset to string
+0053 0114                  218             ADD     [SI], DX          ;Adds the value of the Offset from '0' to SI
+0055 EB0990                219             JMP     Increments        ;Jumps to last part of loop
+                           220             
+0058                       221     UpperChars:
+0058 83EA0A                222             SUB     DX, 10            ;find the quotents offset from 'A'
+005B C60441                223             MOV     byte ptr [SI], ASCII_A  ;Adds the 'A' offset to the string
+005E 0114                  224             ADD     [SI], DX          ;Add the offset from 'A' to the string
+                           225             ;JMP    Increments        ;Jumps to last part of loop
+                           226             
+0060                       227     Increments:        
+0060 46                    228             INC     SI                ;Increment SI to add next character
+0061 41                    229             INC     CX                ;Increment the counter for the loop
+0062 EBD9                  230             JMP     Hex2StringLoop    ;Go back to start of loop
+                           231     
+0064                       232     AddNullToHexString:
+0064 C60400                233             MOV     byte ptr [SI], ASCII_NULL  ;terminates the string with a null  
+                           234             ;JMP    EndHex2String     ;done converting
+0067                       235     EndHex2String:
+0067 C3                    236             RET                       ;Return from function
+                           237             
+                           238     Hex2String      ENDP    
+                           239     
+----                       240     CODE    ENDS            
+                           241     
+                           242     
+                           243     
+                           244             END
+
+ASSEMBLY COMPLETE, NO ERRORS FOUND
